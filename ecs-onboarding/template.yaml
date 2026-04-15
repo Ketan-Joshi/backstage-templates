@@ -49,7 +49,6 @@ spec:
     - title: ECS configuration
       required:
         - environment
-        - cluster
         - cpu
         - memory
         - desiredCount
@@ -107,7 +106,6 @@ spec:
           type: string
           enum:
             - FARGATE
-            - EC2
           default: FARGATE
 
     # ─── Page 3: Repository ────────────────────────────────
@@ -173,7 +171,6 @@ spec:
         desiredCount: ${{ parameters.desiredCount }}
         containerPort: ${{ parameters.containerPort }}
         launchType: ${{ parameters.launchType }}
-        region: us-east-1
         ecrRepoUri: ${{ steps['create-ecr'].output.repositoryUri }}
 
     # 5. Create GoCD pipeline
