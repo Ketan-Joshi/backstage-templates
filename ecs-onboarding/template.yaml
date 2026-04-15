@@ -166,6 +166,7 @@ spec:
       input:
         serviceName: ${{ parameters.serviceName }}
         cluster: ${{ parameters.cluster }}
+        environment: ${{ parameters.environment }}
         cpu: ${{ parameters.cpu }}
         memory: ${{ parameters.memory }}
         desiredCount: ${{ parameters.desiredCount }}
