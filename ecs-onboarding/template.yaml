@@ -1,0 +1,205 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: ecs-service-onboarding
+  title: Onboard ECS Application
+  description: >
+    Creates a GitHub repo, ECR repository, ECS service
+    and GoCD pipeline in one click.
+  tags:
+    - ecs
+    - aws
+    - recommended
+
+spec:
+  owner: platform-team
+  type: service
+
+  parameters:
+
+    # ─── Page 1: Service details ───────────────────────────
+    - title: Service details
+      required:
+        - serviceName
+        - description
+        - owner
+      properties:
+        serviceName:
+          title: Service name
+          type: string
+          description: Lowercase letters and hyphens only
+          pattern: '^[a-z0-9-]+$'
+          ui:autofocus: true
+
+        description:
+          title: Description
+          type: string
+          description: What does this service do?
+
+        owner:
+          title: Team owner
+          type: string
+          description: Team responsible for this service
+          ui:field: OwnerPicker
+          ui:options:
+            catalogFilter:
+              kind: Group
+
+    # ─── Page 2: ECS configuration ─────────────────────────
+    - title: ECS configuration
+      required:
+        - environment
+        - cluster
+        - cpu
+        - memory
+        - desiredCount
+        - containerPort
+      properties:
+        environment:
+          title: Environment
+          type: string
+          enum:
+            - dev
+            - staging
+            - production
+          default: dev
+
+        cluster:
+          title: ECS cluster name
+          type: string
+          description: Name of the existing ECS cluster
+
+        cpu:
+          title: CPU units
+          type: string
+          enum:
+            - '256'
+            - '512'
+            - '1024'
+            - '2048'
+          default: '256'
+          description: 256 = 0.25 vCPU, 512 = 0.5 vCPU
+
+        memory:
+          title: Memory (MB)
+          type: string
+          enum:
+            - '512'
+            - '1024'
+            - '2048'
+            - '4096'
+          default: '512'
+
+        desiredCount:
+          title: Number of tasks
+          type: number
+          default: 1
+          description: How many ECS tasks to run
+
+        containerPort:
+          title: Container port
+          type: number
+          default: 8080
+          description: Port your app listens on inside the container
+
+        launchType:
+          title: Launch type
+          type: string
+          enum:
+            - FARGATE
+            - EC2
+          default: FARGATE
+
+    # ─── Page 3: Repository ────────────────────────────────
+    - title: GitHub repository
+      required:
+        - repoName
+        - repoOrg
+      properties:
+        repoName:
+          title: Repository name
+          type: string
+          description: Name of the new GitHub repo to create
+
+        repoOrg:
+          title: GitHub organisation
+          type: string
+          description: Your GitHub org name
+
+  # ─── Steps (run automatically after submit) ──────────────
+  steps:
+
+    # 1. Fetch skeleton files and render them with form values
+    - id: fetch-template
+      name: Fetch skeleton
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          serviceName: ${{ parameters.serviceName }}
+          description: ${{ parameters.description }}
+          owner: ${{ parameters.owner }}
+          environment: ${{ parameters.environment }}
+          containerPort: ${{ parameters.containerPort }}
+          repoOrg: ${{ parameters.repoOrg }}
+          repoName: ${{ parameters.repoName }}
+
+    # 2. Create GitHub repo and push skeleton files
+    - id: publish-github
+      name: Create GitHub repository
+      action: publish:github
+      input:
+        allowedHosts: ['github.com']
+        description: ${{ parameters.description }}
+        repoUrl: github.com?repo=${{ parameters.repoName }}&owner=${{ parameters.repoOrg }}
+        defaultBranch: main
+
+    # 3. Create ECR repository
+    - id: create-ecr
+      name: Create ECR repository
+      action: aws:ecr:create
+      input:
+        repoName: ${{ parameters.serviceName }}
+        region: us-east-1
+
+    # 4. Create ECS task definition + service
+    - id: create-ecs
+      name: Create ECS service
+      action: aws:ecs:create-service
+      input:
+        serviceName: ${{ parameters.serviceName }}
+        cluster: ${{ parameters.cluster }}
+        cpu: ${{ parameters.cpu }}
+        memory: ${{ parameters.memory }}
+        desiredCount: ${{ parameters.desiredCount }}
+        containerPort: ${{ parameters.containerPort }}
+        launchType: ${{ parameters.launchType }}
+        region: us-east-1
+        ecrRepoUri: ${{ steps['create-ecr'].output.repositoryUri }}
+
+    # 5. Create GoCD pipeline
+    - id: create-gocd-pipeline
+      name: Create GoCD pipeline
+      action: gocd:create-pipeline
+      input:
+        pipelineName: ${{ parameters.serviceName }}-${{ parameters.environment }}
+        repoUrl: ${{ steps['publish-github'].output.remoteUrl }}
+        ecrRepoUri: ${{ steps['create-ecr'].output.repositoryUri }}
+        environment: ${{ parameters.environment }}
+
+    # 6. Register in Backstage catalog
+    - id: register-catalog
+      name: Register in catalog
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['publish-github'].output.repoContentsUrl }}
+        catalogInfoPath: /catalog-info.yaml
+
+  # ─── Output links shown to developer after completion ────
+  output:
+    links:
+      - title: GitHub repository
+        url: ${{ steps['publish-github'].output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps['register-catalog'].output.entityRef }}
