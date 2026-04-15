@@ -149,7 +149,6 @@ spec:
       name: Create GitHub repository
       action: publish:github
       input:
-        allowedHosts: ['github.com']
         description: ${{ parameters.description }}
         repoUrl: github.com?repo=${{ parameters.repoName }}&owner=${{ parameters.repoOrg }}
         defaultBranch: main
