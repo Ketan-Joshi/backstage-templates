@@ -10,13 +10,6 @@ app:
   listen:
     port: 3000
     host: 0.0.0.0
-  # Configure the catalog index page to be the root page
-  packages: all
-  extensions:
-    - page:
-        catalog:
-          config:
-            path: /
 
 organization:
   name: My Company
