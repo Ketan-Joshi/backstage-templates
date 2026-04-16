@@ -1,0 +1,32 @@
+{
+  "name": "${{ values.npmScope }}/${{ values.libraryName }}",
+  "version": "0.1.0",
+  "description": "${{ values.description }}",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "test:ci": "jest --ci --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [],
+  "author": "${{ values.owner }}",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^${{ values.nodeVersion }}",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=${{ values.nodeVersion }}"
+  }
+}

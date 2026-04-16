@@ -1,0 +1,235 @@
+asyncapi: "2.6.0"
+info:
+  title: Order Events
+  version: "1.0.0"
+  description: |
+    AsyncAPI specification for Kafka topics published by the Order Service.
+    Consumers include the Data Ingestion Pipeline and Notification Service.
+  contact:
+    name: Backend Team
+    email: backend-team@example.com
+
+servers:
+  production:
+    url: kafka.example.com:9092
+    protocol: kafka
+    description: Production Kafka cluster
+  staging:
+    url: kafka.staging.example.com:9092
+    protocol: kafka
+    description: Staging Kafka cluster
+
+defaultContentType: application/json
+
+channels:
+  orders.events.v1:
+    description: |
+      Main topic for all order lifecycle events.
+      Partitioned by customerId for ordering guarantees.
+    subscribe:
+      summary: Consume order lifecycle events
+      operationId: receiveOrderEvent
+      message:
+        oneOf:
+          - $ref: "#/components/messages/OrderCreated"
+          - $ref: "#/components/messages/OrderConfirmed"
+          - $ref: "#/components/messages/OrderShipped"
+          - $ref: "#/components/messages/OrderDelivered"
+          - $ref: "#/components/messages/OrderCancelled"
+    bindings:
+      kafka:
+        topic: orders.events.v1
+        partitions: 12
+        replicas: 3
+
+  orders.dlq.v1:
+    description: Dead-letter queue for failed order event processing.
+    subscribe:
+      summary: Consume failed order events for reprocessing
+      operationId: receiveDeadLetterOrderEvent
+      message:
+        $ref: "#/components/messages/DeadLetterEvent"
+    bindings:
+      kafka:
+        topic: orders.dlq.v1
+        partitions: 3
+        replicas: 3
+
+components:
+  messages:
+    OrderCreated:
+      name: OrderCreated
+      title: Order Created
+      summary: Published when a new order is successfully placed.
+      contentType: application/json
+      headers:
+        type: object
+        properties:
+          eventType:
+            type: string
+            const: ORDER_CREATED
+          correlationId:
+            type: string
+            format: uuid
+      payload:
+        $ref: "#/components/schemas/OrderCreatedPayload"
+
+    OrderConfirmed:
+      name: OrderConfirmed
+      title: Order Confirmed
+      summary: Published when payment is confirmed and order is accepted.
+      contentType: application/json
+      headers:
+        type: object
+        properties:
+          eventType:
+            type: string
+            const: ORDER_CONFIRMED
+      payload:
+        $ref: "#/components/schemas/OrderStatusChangedPayload"
+
+    OrderShipped:
+      name: OrderShipped
+      title: Order Shipped
+      summary: Published when the order has been dispatched.
+      contentType: application/json
+      headers:
+        type: object
+        properties:
+          eventType:
+            type: string
+            const: ORDER_SHIPPED
+      payload:
+        $ref: "#/components/schemas/OrderShippedPayload"
+
+    OrderDelivered:
+      name: OrderDelivered
+      title: Order Delivered
+      summary: Published when the order is confirmed as delivered.
+      contentType: application/json
+      headers:
+        type: object
+        properties:
+          eventType:
+            type: string
+            const: ORDER_DELIVERED
+      payload:
+        $ref: "#/components/schemas/OrderStatusChangedPayload"
+
+    OrderCancelled:
+      name: OrderCancelled
+      title: Order Cancelled
+      summary: Published when an order is cancelled by the customer or system.
+      contentType: application/json
+      headers:
+        type: object
+        properties:
+          eventType:
+            type: string
+            const: ORDER_CANCELLED
+      payload:
+        $ref: "#/components/schemas/OrderCancelledPayload"
+
+    DeadLetterEvent:
+      name: DeadLetterEvent
+      title: Dead Letter Event
+      summary: Wraps a failed event with error context for reprocessing.
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          originalTopic:
+            type: string
+          originalPayload:
+            type: string
+          errorMessage:
+            type: string
+          failedAt:
+            type: string
+            format: date-time
+
+  schemas:
+    OrderCreatedPayload:
+      type: object
+      required: [orderId, customerId, items, totalAmount, createdAt]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              productId:
+                type: string
+                format: uuid
+              quantity:
+                type: integer
+              unitPrice:
+                type: number
+        totalAmount:
+          type: number
+        currency:
+          type: string
+          default: USD
+        createdAt:
+          type: string
+          format: date-time
+
+    OrderStatusChangedPayload:
+      type: object
+      required: [orderId, customerId, status, updatedAt]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        status:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+
+    OrderShippedPayload:
+      type: object
+      required: [orderId, customerId, trackingNumber, carrier, updatedAt]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        trackingNumber:
+          type: string
+        carrier:
+          type: string
+        estimatedDelivery:
+          type: string
+          format: date
+        updatedAt:
+          type: string
+          format: date-time
+
+    OrderCancelledPayload:
+      type: object
+      required: [orderId, customerId, reason, cancelledAt]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          enum: [customer_request, payment_failed, out_of_stock, fraud_detected]
+        cancelledAt:
+          type: string
+          format: date-time

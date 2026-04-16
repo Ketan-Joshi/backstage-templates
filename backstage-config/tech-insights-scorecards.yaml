@@ -1,0 +1,104 @@
+##############################################################
+# Tech Insights — Scorecard definitions
+#
+# These are example scorecard checks to add to your Backstage
+# instance's techInsights configuration in app-config.yaml.
+# They demonstrate the Tech Insights / Scorecards feature.
+#
+# Reference: https://backstage.io/docs/plugins/tech-insights
+##############################################################
+
+# ── Production Readiness Scorecard ───────────────────────────
+# Checks that production services meet baseline standards.
+
+scorecards:
+  - id: production-readiness
+    title: Production Readiness
+    description: >
+      Checks that a service meets the minimum bar for running in production.
+      All production services should pass all checks.
+    checks:
+      - id: has-owner
+        title: Has an owner
+        description: The component has a valid owner set in the catalog.
+        factIds:
+          - entityOwnershipFactRetriever
+        rule:
+          factRef: entityOwnershipFactRetriever#hasOwner
+          operator: equal
+          value: true
+
+      - id: has-description
+        title: Has a description
+        description: The component has a non-empty description in the catalog.
+        factIds:
+          - entityMetadataFactRetriever
+        rule:
+          factRef: entityMetadataFactRetriever#hasDescription
+          operator: equal
+          value: true
+
+      - id: has-techdocs
+        title: Has TechDocs
+        description: The component has a backstage.io/techdocs-ref annotation.
+        factIds:
+          - techdocsFactRetriever
+        rule:
+          factRef: techdocsFactRetriever#hasAnnotationBackstageTechDocsRef
+          operator: equal
+          value: true
+
+      - id: has-lifecycle
+        title: Has lifecycle set
+        description: The component has a lifecycle value (experimental/production/deprecated).
+        factIds:
+          - entityMetadataFactRetriever
+        rule:
+          factRef: entityMetadataFactRetriever#hasLifecycle
+          operator: equal
+          value: true
+
+      - id: has-tags
+        title: Has at least one tag
+        description: The component has at least one tag for discoverability.
+        factIds:
+          - entityMetadataFactRetriever
+        rule:
+          factRef: entityMetadataFactRetriever#hasTagsSet
+          operator: equal
+          value: true
+
+  - id: api-quality
+    title: API Quality
+    description: >
+      Checks that APIs have complete documentation and are properly registered.
+    checks:
+      - id: api-has-definition
+        title: API has a definition
+        description: The API entity has a spec.definition pointing to an API spec file.
+        factIds:
+          - entityMetadataFactRetriever
+        rule:
+          factRef: entityMetadataFactRetriever#hasApiDefinition
+          operator: equal
+          value: true
+
+      - id: api-has-owner
+        title: API has an owner
+        description: The API entity has a valid owner.
+        factIds:
+          - entityOwnershipFactRetriever
+        rule:
+          factRef: entityOwnershipFactRetriever#hasOwner
+          operator: equal
+          value: true
+
+      - id: api-has-system
+        title: API belongs to a system
+        description: The API entity is associated with a system.
+        factIds:
+          - entityMetadataFactRetriever
+        rule:
+          factRef: entityMetadataFactRetriever#hasSystemSet
+          operator: equal
+          value: true

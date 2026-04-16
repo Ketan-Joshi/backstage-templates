@@ -1,0 +1,168 @@
+"""
+Product Catalogue GraphQL API
+Provides queries for products, categories, inventory, and pricing.
+"""
+
+type Query {
+  """Fetch a single product by ID"""
+  product(id: ID!): Product
+
+  """Search and filter products"""
+  products(
+    filter: ProductFilter
+    sort: ProductSort
+    pagination: PaginationInput
+  ): ProductConnection!
+
+  """Fetch a category and its products"""
+  category(id: ID!): Category
+
+  """List all top-level categories"""
+  categories: [Category!]!
+
+  """Check real-time inventory for a product"""
+  inventory(productId: ID!): InventoryStatus!
+}
+
+type Mutation {
+  """Update product details (admin only)"""
+  updateProduct(id: ID!, input: UpdateProductInput!): Product!
+
+  """Adjust inventory count"""
+  adjustInventory(productId: ID!, delta: Int!): InventoryStatus!
+}
+
+type Subscription {
+  """Subscribe to price changes for a product"""
+  priceChanged(productId: ID!): PriceChangeEvent!
+
+  """Subscribe to inventory updates"""
+  inventoryUpdated(productId: ID!): InventoryStatus!
+}
+
+# ── Types ────────────────────────────────────────────────────
+
+type Product {
+  id: ID!
+  sku: String!
+  name: String!
+  description: String
+  slug: String!
+  category: Category!
+  images: [ProductImage!]!
+  pricing: Pricing!
+  inventory: InventoryStatus!
+  attributes: [ProductAttribute!]!
+  tags: [String!]!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type ProductConnection {
+  edges: [ProductEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ProductEdge {
+  node: Product!
+  cursor: String!
+}
+
+type Category {
+  id: ID!
+  name: String!
+  slug: String!
+  description: String
+  parent: Category
+  children: [Category!]!
+  products(pagination: PaginationInput): ProductConnection!
+}
+
+type ProductImage {
+  url: String!
+  altText: String
+  isPrimary: Boolean!
+}
+
+type Pricing {
+  basePrice: Float!
+  salePrice: Float
+  currency: String!
+  taxRate: Float!
+}
+
+type InventoryStatus {
+  productId: ID!
+  quantity: Int!
+  reserved: Int!
+  available: Int!
+  warehouseLocation: String
+  updatedAt: String!
+}
+
+type ProductAttribute {
+  name: String!
+  value: String!
+}
+
+type PriceChangeEvent {
+  productId: ID!
+  oldPrice: Float!
+  newPrice: Float!
+  changedAt: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+# ── Inputs ───────────────────────────────────────────────────
+
+input ProductFilter {
+  categoryId: ID
+  minPrice: Float
+  maxPrice: Float
+  inStock: Boolean
+  tags: [String!]
+  searchQuery: String
+}
+
+input ProductSort {
+  field: ProductSortField!
+  direction: SortDirection!
+}
+
+enum ProductSortField {
+  NAME
+  PRICE
+  CREATED_AT
+  POPULARITY
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}
+
+input PaginationInput {
+  first: Int
+  after: String
+  last: Int
+  before: String
+}
+
+input UpdateProductInput {
+  name: String
+  description: String
+  pricing: PricingInput
+}
+
+input PricingInput {
+  basePrice: Float
+  salePrice: Float
+  currency: String
+}

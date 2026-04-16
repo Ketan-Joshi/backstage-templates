@@ -1,0 +1,160 @@
+##############################################################
+# APIs
+# Showcases: openapi, asyncapi, graphql, grpc API kinds
+##############################################################
+
+# ── 1. Orders REST API (OpenAPI) ─────────────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: orders-api
+  title: Orders API
+  description: >
+    RESTful API for creating, reading, updating, and cancelling orders.
+    Consumed by the Storefront and external partners.
+  annotations:
+    backstage.io/techdocs-ref: dir:./docs/orders-api
+    github.com/project-slug: Ketan-Joshi/backstage-templates
+  tags:
+    - rest
+    - openapi
+    - orders
+  links:
+    - url: http://3.208.117.182:3000/api-docs/orders
+      title: Swagger UI
+      icon: web
+spec:
+  type: openapi
+  lifecycle: production
+  owner: backend-team
+  system: order-management
+  definition:
+    $text: ./api-specs/orders-openapi.yaml
+
+---
+# ── 2. Payment API (OpenAPI) ─────────────────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: payment-api
+  title: Payment API
+  description: >
+    RESTful API for initiating and querying payment transactions.
+    PCI-DSS compliant. Consumed by the Order Service.
+  annotations:
+    backstage.io/techdocs-ref: dir:./docs/payment-api
+    github.com/project-slug: Ketan-Joshi/backstage-templates
+  tags:
+    - rest
+    - openapi
+    - payments
+    - pci-dss
+spec:
+  type: openapi
+  lifecycle: production
+  owner: backend-team
+  system: order-management
+  definition:
+    $text: ./api-specs/payment-openapi.yaml
+
+---
+# ── 3. Notification API (OpenAPI) ────────────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: notification-api
+  title: Notification API
+  description: >
+    RESTful API for sending and querying notifications (email, SMS, push).
+  annotations:
+    github.com/project-slug: Ketan-Joshi/backstage-templates
+  tags:
+    - rest
+    - openapi
+    - notifications
+spec:
+  type: openapi
+  lifecycle: production
+  owner: backend-team
+  system: order-management
+  definition:
+    $text: ./api-specs/notification-openapi.yaml
+
+---
+# ── 4. Product Catalogue API (GraphQL) ───────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: product-catalogue-api
+  title: Product Catalogue API
+  description: >
+    GraphQL API for querying the product catalogue — products, categories,
+    inventory, and pricing. Consumed by the Storefront.
+  annotations:
+    backstage.io/techdocs-ref: dir:./docs/product-catalogue-api
+    github.com/project-slug: Ketan-Joshi/backstage-templates
+  tags:
+    - graphql
+    - products
+    - catalogue
+  links:
+    - url: http://3.208.117.182:3000/graphiql
+      title: GraphiQL Explorer
+      icon: web
+spec:
+  type: graphql
+  lifecycle: production
+  owner: backend-team
+  system: storefront
+  definition:
+    $text: ./api-specs/product-catalogue.graphql
+
+---
+# ── 5. Order Events (AsyncAPI / Kafka) ───────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: orders-events-asyncapi
+  title: Order Events (Kafka)
+  description: >
+    AsyncAPI specification for the Kafka topics published by the Order Service.
+    Consumed by the Data Ingestion pipeline and Notification Service.
+  annotations:
+    backstage.io/techdocs-ref: dir:./docs/orders-events
+    github.com/project-slug: Ketan-Joshi/backstage-templates
+  tags:
+    - asyncapi
+    - kafka
+    - events
+    - orders
+spec:
+  type: asyncapi
+  lifecycle: production
+  owner: backend-team
+  system: order-management
+  definition:
+    $text: ./api-specs/orders-asyncapi.yaml
+
+---
+# ── 6. Internal gRPC API (grpc) ──────────────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: inventory-grpc-api
+  title: Inventory gRPC API
+  description: >
+    High-performance gRPC API for real-time inventory checks.
+    Used internally between services.
+  annotations:
+    github.com/project-slug: Ketan-Joshi/backstage-templates
+  tags:
+    - grpc
+    - protobuf
+    - inventory
+spec:
+  type: grpc
+  lifecycle: experimental
+  owner: backend-team
+  system: storefront
+  definition:
+    $text: ./api-specs/inventory.proto

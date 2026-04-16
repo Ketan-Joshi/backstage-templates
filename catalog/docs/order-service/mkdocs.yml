@@ -1,0 +1,31 @@
+site_name: Order Service
+site_description: Documentation for the Order Service microservice
+site_author: Backend Team
+
+docs_dir: .
+repo_url: https://github.com/Ketan-Joshi/backstage-templates
+repo_name: Ketan-Joshi/backstage-templates
+
+nav:
+  - Home: index.md
+  - Architecture: architecture.md
+  - API Reference: api.md
+  - Runbooks:
+      - Deployment: runbooks/deployment.md
+      - Incident Response: runbooks/incident-response.md
+  - ADRs:
+      - ADR-001 Use PostgreSQL: adrs/adr-001-postgresql.md
+      - ADR-002 Kafka for Events: adrs/adr-002-kafka-events.md
+
+plugins:
+  - techdocs-core
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+  - tables

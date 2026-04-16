@@ -2,10 +2,52 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: ${{ values.serviceName }}
+  title: ${{ values.serviceName | title }}
   description: ${{ values.description }}
   annotations:
+    # Source control
     github.com/project-slug: ${{ values.repoOrg }}/${{ values.repoName }}
+    backstage.io/source-location: url:https://github.com/${{ values.repoOrg }}/${{ values.repoName }}
+
+    # TechDocs — renders the docs/ folder
+    backstage.io/techdocs-ref: dir:.
+
+    # Kubernetes — shows pods in the K8s tab
+    backstage.io/kubernetes-id: ${{ values.serviceName }}
+    backstage.io/kubernetes-namespace: ${{ values.environment }}
+    backstage.io/kubernetes-label-selector: app=${{ values.serviceName }}
+
+    {% if values.enableSentry %}
+    # Sentry error tracking
+    sentry.io/project-slug: ${{ values.serviceName }}
+    {% endif %}
+
+    # ArgoCD GitOps deployment
+    argocd/app-name: ${{ values.serviceName }}-${{ values.environment }}
+
+  tags:
+    - ecs
+    - fargate
+    - ${{ values.environment }}
+    {% for tag in values.tags %}
+    - ${{ tag }}
+    {% endfor %}
+
+  links:
+    - url: https://github.com/${{ values.repoOrg }}/${{ values.repoName }}
+      title: GitHub Repository
+      icon: github
+    - url: https://console.aws.amazon.com/ecs/home#/clusters/backstage-poc-cluster/services/${{ values.serviceName }}
+      title: ECS Service
+      icon: cloud
+    {% if values.enableDatadog %}
+    - url: https://app.datadoghq.com/apm/services/${{ values.serviceName }}
+      title: Datadog APM
+      icon: dashboard
+    {% endif %}
+
 spec:
   type: service
-  lifecycle: ${{ values.environment }}
+  lifecycle: ${{ values.lifecycle }}
   owner: ${{ values.owner }}
+  system: ${{ values.system }}

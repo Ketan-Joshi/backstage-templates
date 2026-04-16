@@ -1,0 +1,97 @@
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: alice
+  annotations:
+    backstage.io/managed-by-location: url:https://github.com/Ketan-Joshi/backstage-templates/blob/main/catalog/org/users.yaml
+spec:
+  profile:
+    displayName: Alice Johnson
+    email: alice@example.com
+    picture: https://avatars.dicebear.com/api/avataaars/alice.svg
+  memberOf:
+    - platform-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: bob
+  annotations:
+    backstage.io/managed-by-location: url:https://github.com/Ketan-Joshi/backstage-templates/blob/main/catalog/org/users.yaml
+spec:
+  profile:
+    displayName: Bob Smith
+    email: bob@example.com
+    picture: https://avatars.dicebear.com/api/avataaars/bob.svg
+  memberOf:
+    - platform-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: carol
+  annotations:
+    backstage.io/managed-by-location: url:https://github.com/Ketan-Joshi/backstage-templates/blob/main/catalog/org/users.yaml
+spec:
+  profile:
+    displayName: Carol Williams
+    email: carol@example.com
+    picture: https://avatars.dicebear.com/api/avataaars/carol.svg
+  memberOf:
+    - backend-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: dave
+  annotations:
+    backstage.io/managed-by-location: url:https://github.com/Ketan-Joshi/backstage-templates/blob/main/catalog/org/users.yaml
+spec:
+  profile:
+    displayName: Dave Brown
+    email: dave@example.com
+    picture: https://avatars.dicebear.com/api/avataaars/dave.svg
+  memberOf:
+    - backend-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: eve
+  annotations:
+    backstage.io/managed-by-location: url:https://github.com/Ketan-Joshi/backstage-templates/blob/main/catalog/org/users.yaml
+spec:
+  profile:
+    displayName: Eve Davis
+    email: eve@example.com
+    picture: https://avatars.dicebear.com/api/avataaars/eve.svg
+  memberOf:
+    - frontend-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: frank
+  annotations:
+    backstage.io/managed-by-location: url:https://github.com/Ketan-Joshi/backstage-templates/blob/main/catalog/org/users.yaml
+spec:
+  profile:
+    displayName: Frank Miller
+    email: frank@example.com
+    picture: https://avatars.dicebear.com/api/avataaars/frank.svg
+  memberOf:
+    - frontend-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: grace
+  annotations:
+    backstage.io/managed-by-location: url:https://github.com/Ketan-Joshi/backstage-templates/blob/main/catalog/org/users.yaml
+spec:
+  profile:
+    displayName: Grace Lee
+    email: grace@example.com
+    picture: https://avatars.dicebear.com/api/avataaars/grace.svg
+  memberOf:
+    - data-team

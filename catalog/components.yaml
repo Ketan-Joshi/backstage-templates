@@ -1,0 +1,302 @@
+##############################################################
+# COMPONENTS
+# Showcases: service, library, website, documentation types
+# Showcases: all major annotations (TechDocs, GitHub, K8s,
+#            PagerDuty, Datadog, Sentry, ArgoCD, Sonarqube)
+# Showcases: relations (dependsOn, providesApi, consumesApi,
+#            partOf, subcomponentOf)
+##############################################################
+
+# ── 1. Backend service (ECS / Fargate) ──────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: order-service
+  title: Order Service
+  description: >
+    Core microservice that manages the order lifecycle. Exposes the
+    Orders REST API and publishes order events to Kafka.
+  annotations:
+    # TechDocs — renders docs/ folder as a documentation site
+    backstage.io/techdocs-ref: dir:./docs/order-service
+
+    # Source control
+    github.com/project-slug: Ketan-Joshi/backstage-templates
+
+    # Kubernetes — shows pods/deployments in the K8s tab
+    backstage.io/kubernetes-id: order-service
+    backstage.io/kubernetes-namespace: production
+    backstage.io/kubernetes-label-selector: app=order-service
+
+    # PagerDuty — links incidents to this component
+    pagerduty.com/service-id: PXXXXXX
+
+    # Datadog — links dashboards and SLOs
+    datadoghq.com/dashboard-url: https://app.datadoghq.com/dashboard/abc-123
+    datadoghq.com/slo-url: https://app.datadoghq.com/slo/abc-123
+
+    # Sentry — links error tracking
+    sentry.io/project-slug: order-service
+
+    # ArgoCD — links GitOps deployment
+    argocd/app-name: order-service-production
+
+    # SonarQube — links code quality
+    sonarqube.org/project-key: Ketan-Joshi_order-service
+
+    # Opsgenie
+    opsgenie.com/component-selector: order-service
+
+    # Jira
+    jira/project-key: ORD
+
+    # Backstage search
+    backstage.io/source-location: url:https://github.com/Ketan-Joshi/backstage-templates
+
+  tags:
+    - java
+    - spring-boot
+    - ecs
+    - fargate
+    - kafka
+  links:
+    - url: https://grafana.example.com/d/order-service
+      title: Grafana Dashboard
+      icon: dashboard
+    - url: https://runbooks.example.com/order-service
+      title: Runbook
+      icon: docs
+    - url: https://sentry.io/organizations/Ketan-Joshi/projects/order-service
+      title: Sentry
+      icon: alert
+spec:
+  type: service
+  lifecycle: production
+  owner: backend-team
+  system: order-management
+  providesApis:
+    - orders-api
+  consumesApis:
+    - payment-api
+    - notification-api
+  dependsOn:
+    - resource:orders-db
+    - resource:orders-kafka-topic
+    - component:notification-service
+
+---
+# ── 2. Payment service ───────────────────────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: payment-service
+  title: Payment Service
+  description: >
+    Handles payment processing via Stripe and PayPal. Exposes the
+    Payment API consumed by the Order Service.
+  annotations:
+    backstage.io/techdocs-ref: dir:./docs/payment-service
+    github.com/project-slug: Ketan-Joshi/backstage-templates
+    backstage.io/kubernetes-id: payment-service
+    backstage.io/kubernetes-namespace: production
+    pagerduty.com/service-id: PYYYYYY
+    datadoghq.com/dashboard-url: https://app.datadoghq.com/dashboard/pay-123
+    sentry.io/project-slug: payment-service
+    argocd/app-name: payment-service-production
+    sonarqube.org/project-key: Ketan-Joshi_payment-service
+  tags:
+    - nodejs
+    - stripe
+    - ecs
+    - fargate
+    - pci-dss
+  links:
+    - url: https://grafana.example.com/d/payment-service
+      title: Grafana Dashboard
+      icon: dashboard
+spec:
+  type: service
+  lifecycle: production
+  owner: backend-team
+  system: order-management
+  providesApis:
+    - payment-api
+  dependsOn:
+    - resource:payments-db
+    - component:notification-service
+
+---
+# ── 3. Notification service ──────────────────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: notification-service
+  title: Notification Service
+  description: >
+    Sends email, SMS, and push notifications. Consumes events from
+    Kafka and exposes the Notification API.
+  annotations:
+    backstage.io/techdocs-ref: dir:./docs/notification-service
+    github.com/project-slug: Ketan-Joshi/backstage-templates
+    backstage.io/kubernetes-id: notification-service
+    backstage.io/kubernetes-namespace: production
+    pagerduty.com/service-id: PZZZZZ
+    sentry.io/project-slug: notification-service
+    argocd/app-name: notification-service-production
+  tags:
+    - python
+    - kafka
+    - ecs
+    - fargate
+    - email
+    - sms
+  links:
+    - url: https://grafana.example.com/d/notification-service
+      title: Grafana Dashboard
+      icon: dashboard
+spec:
+  type: service
+  lifecycle: production
+  owner: backend-team
+  system: order-management
+  providesApis:
+    - notification-api
+  dependsOn:
+    - resource:notifications-kafka-topic
+
+---
+# ── 4. Storefront web app (website type) ─────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: storefront-web
+  title: Storefront Web App
+  description: >
+    React-based customer-facing web application. Deployed on CloudFront + S3.
+    Consumes the Orders API and Product Catalogue API.
+  annotations:
+    backstage.io/techdocs-ref: dir:./docs/storefront-web
+    github.com/project-slug: Ketan-Joshi/backstage-templates
+    backstage.io/kubernetes-id: storefront-web
+    sentry.io/project-slug: storefront-web
+    sonarqube.org/project-key: Ketan-Joshi_storefront-web
+    lighthouse.com/website-url: http://3.208.117.182:3000
+  tags:
+    - react
+    - typescript
+    - cloudfront
+    - s3
+    - frontend
+  links:
+    - url: http://3.208.117.182:3000
+      title: Live Site
+      icon: web
+    - url: https://grafana.example.com/d/storefront-web
+      title: Grafana Dashboard
+      icon: dashboard
+spec:
+  type: website
+  lifecycle: production
+  owner: frontend-team
+  system: storefront
+  consumesApis:
+    - orders-api
+    - product-catalogue-api
+  dependsOn:
+    - resource:cloudfront-distribution
+    - resource:static-assets-bucket
+
+---
+# ── 5. Design system (library type) ──────────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: design-system
+  title: Design System
+  description: >
+    Shared React component library and design tokens used across all
+    frontend applications. Published to npm as @example/design-system.
+  annotations:
+    backstage.io/techdocs-ref: dir:./docs/design-system
+    github.com/project-slug: Ketan-Joshi/backstage-templates
+    sonarqube.org/project-key: Ketan-Joshi_design-system
+  tags:
+    - react
+    - typescript
+    - storybook
+    - npm
+    - library
+  links:
+    - url: https://storybook.example.com
+      title: Storybook
+      icon: web
+spec:
+  type: library
+  lifecycle: production
+  owner: frontend-team
+  system: storefront
+
+---
+# ── 6. Data ingestion pipeline ───────────────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: order-events-pipeline
+  title: Order Events Pipeline
+  description: >
+    Apache Kafka Streams application that consumes order events,
+    transforms them, and loads them into the data warehouse (Redshift).
+  annotations:
+    backstage.io/techdocs-ref: dir:./docs/order-events-pipeline
+    github.com/project-slug: Ketan-Joshi/backstage-templates
+    backstage.io/kubernetes-id: order-events-pipeline
+    backstage.io/kubernetes-namespace: data
+    datadoghq.com/dashboard-url: https://app.datadoghq.com/dashboard/pipeline-123
+    sentry.io/project-slug: order-events-pipeline
+  tags:
+    - kafka
+    - kafka-streams
+    - redshift
+    - etl
+    - data
+  links:
+    - url: https://grafana.example.com/d/order-events-pipeline
+      title: Grafana Dashboard
+      icon: dashboard
+spec:
+  type: service
+  lifecycle: production
+  owner: data-team
+  system: data-ingestion
+  consumesApis:
+    - orders-events-asyncapi
+  dependsOn:
+    - resource:orders-kafka-topic
+    - resource:redshift-cluster
+
+---
+# ── 7. Internal documentation site (documentation type) ──────
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: platform-docs
+  title: Platform Documentation
+  description: >
+    Central documentation hub for the internal developer platform.
+    Covers onboarding, runbooks, ADRs, and how-to guides.
+  annotations:
+    backstage.io/techdocs-ref: dir:./docs/platform-docs
+    github.com/project-slug: Ketan-Joshi/backstage-templates
+  tags:
+    - documentation
+    - mkdocs
+    - techdocs
+  links:
+    - url: http://3.208.117.182:3000/docs
+      title: Published Docs
+      icon: docs
+spec:
+  type: documentation
+  lifecycle: production
+  owner: platform-team
+  system: platform-tooling

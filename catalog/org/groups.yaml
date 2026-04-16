@@ -1,0 +1,110 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: platform-team
+  title: Platform Team
+  description: Owns the internal developer platform, CI/CD tooling, and shared infrastructure.
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+  links:
+    - url: https://wiki.example.com/platform-team
+      title: Team Wiki
+      icon: dashboard
+    - url: https://slack.com/app_redirect?channel=platform-team
+      title: Slack Channel
+      icon: chat
+spec:
+  type: team
+  profile:
+    displayName: Platform Team
+    email: platform-team@example.com
+    picture: https://avatars.dicebear.com/api/identicon/platform-team.svg
+  parent: engineering
+  children: []
+  members:
+    - alice
+    - bob
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: backend-team
+  title: Backend Team
+  description: Responsible for all backend microservices and APIs.
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+  links:
+    - url: https://slack.com/app_redirect?channel=backend-team
+      title: Slack Channel
+      icon: chat
+spec:
+  type: team
+  profile:
+    displayName: Backend Team
+    email: backend-team@example.com
+    picture: https://avatars.dicebear.com/api/identicon/backend-team.svg
+  parent: engineering
+  children: []
+  members:
+    - carol
+    - dave
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: frontend-team
+  title: Frontend Team
+  description: Owns all customer-facing web applications and design systems.
+  links:
+    - url: https://slack.com/app_redirect?channel=frontend-team
+      title: Slack Channel
+      icon: chat
+spec:
+  type: team
+  profile:
+    displayName: Frontend Team
+    email: frontend-team@example.com
+    picture: https://avatars.dicebear.com/api/identicon/frontend-team.svg
+  parent: engineering
+  children: []
+  members:
+    - eve
+    - frank
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: data-team
+  title: Data Team
+  description: Manages data pipelines, analytics, and ML infrastructure.
+  links:
+    - url: https://slack.com/app_redirect?channel=data-team
+      title: Slack Channel
+      icon: chat
+spec:
+  type: team
+  profile:
+    displayName: Data Team
+    email: data-team@example.com
+    picture: https://avatars.dicebear.com/api/identicon/data-team.svg
+  parent: engineering
+  children: []
+  members:
+    - grace
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: engineering
+  title: Engineering
+  description: Top-level engineering organisation.
+spec:
+  type: organization
+  profile:
+    displayName: Engineering
+    email: engineering@example.com
+  children:
+    - platform-team
+    - backend-team
+    - frontend-team
+    - data-team

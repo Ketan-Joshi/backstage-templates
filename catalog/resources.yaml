@@ -1,0 +1,150 @@
+##############################################################
+# RESOURCES
+# Showcases: database, s3-bucket, kafka-topic, cloud-resource types
+##############################################################
+
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: orders-db
+  title: Orders Database (RDS PostgreSQL)
+  description: >
+    Amazon RDS PostgreSQL instance that stores all order records.
+    Multi-AZ, automated backups enabled.
+  annotations:
+    aws.amazon.com/arn: arn:aws:rds:us-east-1:123456789012:db:orders-db-prod
+  tags:
+    - postgresql
+    - rds
+    - aws
+    - production
+  links:
+    - url: https://console.aws.amazon.com/rds/home?region=us-east-1#database:id=orders-db-prod
+      title: AWS Console
+      icon: cloud
+spec:
+  type: database
+  owner: backend-team
+  system: order-management
+  dependsOn: []
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: payments-db
+  title: Payments Database (RDS PostgreSQL)
+  description: >
+    Dedicated RDS PostgreSQL instance for payment records.
+    Encrypted at rest, PCI-DSS compliant.
+  annotations:
+    aws.amazon.com/arn: arn:aws:rds:us-east-1:123456789012:db:payments-db-prod
+  tags:
+    - postgresql
+    - rds
+    - aws
+    - pci-dss
+spec:
+  type: database
+  owner: backend-team
+  system: order-management
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: orders-kafka-topic
+  title: Orders Kafka Topic
+  description: >
+    Kafka topic `orders.events.v1` — publishes order lifecycle events
+    (created, updated, cancelled, fulfilled).
+  tags:
+    - kafka
+    - events
+    - streaming
+  links:
+    - url: https://kafka-ui.example.com/topics/orders.events.v1
+      title: Kafka UI
+      icon: web
+spec:
+  type: kafka-topic
+  owner: backend-team
+  system: order-management
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: notifications-kafka-topic
+  title: Notifications Kafka Topic
+  description: >
+    Kafka topic `notifications.requests.v1` — carries notification
+    requests from upstream services to the Notification Service.
+  tags:
+    - kafka
+    - events
+    - streaming
+spec:
+  type: kafka-topic
+  owner: backend-team
+  system: order-management
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: static-assets-bucket
+  title: Static Assets S3 Bucket
+  description: >
+    S3 bucket that hosts the compiled Storefront web app assets.
+    Versioning enabled, served via CloudFront.
+  annotations:
+    aws.amazon.com/arn: arn:aws:s3:::example-storefront-assets-prod
+  tags:
+    - s3
+    - aws
+    - storage
+spec:
+  type: s3-bucket
+  owner: frontend-team
+  system: storefront
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: cloudfront-distribution
+  title: CloudFront Distribution
+  description: >
+    CloudFront CDN distribution that serves the Storefront web app
+    globally with low latency.
+  annotations:
+    aws.amazon.com/arn: arn:aws:cloudfront::123456789012:distribution/EXXXXXXXXX
+  tags:
+    - cloudfront
+    - cdn
+    - aws
+spec:
+  type: cloud-resource
+  owner: frontend-team
+  system: storefront
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: redshift-cluster
+  title: Data Warehouse (Redshift)
+  description: >
+    Amazon Redshift cluster used as the central data warehouse.
+    Receives data from all ETL pipelines.
+  annotations:
+    aws.amazon.com/arn: arn:aws:redshift:us-east-1:123456789012:cluster:example-dw
+  tags:
+    - redshift
+    - aws
+    - data-warehouse
+spec:
+  type: database
+  owner: data-team
+  system: data-ingestion

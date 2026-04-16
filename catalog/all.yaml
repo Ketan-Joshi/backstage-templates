@@ -1,0 +1,41 @@
+##############################################################
+# ROOT CATALOG LOCATION
+#
+# Registered in app-config.yaml:
+#
+#   catalog:
+#     locations:
+#       - type: url
+#         target: https://github.com/Ketan-Joshi/backstage-templates/blob/main/catalog/all.yaml
+#
+# This file imports all catalog entities for the POC.
+##############################################################
+
+apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: backstage-poc-root
+  description: Root location for the Backstage POC — imports all entities
+spec:
+  targets:
+    # Org structure: Groups and Users
+    - ./org/groups.yaml
+    - ./org/users.yaml
+
+    # Domains and Systems
+    - ./domains-and-systems.yaml
+
+    # Components (services, libraries, websites, documentation)
+    - ./components.yaml
+
+    # APIs (OpenAPI, AsyncAPI, GraphQL, gRPC)
+    - ./apis.yaml
+
+    # Resources (databases, S3 buckets, Kafka topics, cloud resources)
+    - ./resources.yaml
+
+    # Software Templates
+    - ../ecs-onboarding/template.yaml
+    - ../nodejs-library/template.yaml
+    - ../documentation-site/template.yaml
+    - ../data-pipeline/template.yaml

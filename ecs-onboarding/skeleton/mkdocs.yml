@@ -1,0 +1,21 @@
+site_name: "${{ values.serviceName }}"
+site_description: "${{ values.description }}"
+
+docs_dir: docs
+repo_url: https://github.com/${{ values.repoOrg }}/${{ values.repoName }}
+repo_name: ${{ values.repoOrg }}/${{ values.repoName }}
+
+nav:
+  - Home: index.md
+  - Runbooks:
+      - Deployment: runbooks/deployment.md
+      - Incident Response: runbooks/incident-response.md
+
+plugins:
+  - techdocs-core
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - tables

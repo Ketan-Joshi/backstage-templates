@@ -1,0 +1,188 @@
+openapi: "3.0.3"
+info:
+  title: Payment API
+  version: "1.0.0"
+  description: |
+    PCI-DSS compliant RESTful API for initiating and querying payment transactions.
+    Supports credit/debit cards via Stripe and PayPal.
+  contact:
+    name: Backend Team
+    email: backend-team@example.com
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production
+  - url: https://api.staging.example.com/v1
+    description: Staging
+
+tags:
+  - name: payments
+    description: Payment transaction operations
+  - name: refunds
+    description: Refund operations
+
+paths:
+  /payments:
+    post:
+      summary: Initiate a payment
+      operationId: createPayment
+      tags: [payments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePaymentRequest"
+      responses:
+        "201":
+          description: Payment initiated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+        "400":
+          description: Invalid request
+        "402":
+          description: Payment failed
+      security:
+        - bearerAuth: []
+
+  /payments/{paymentId}:
+    parameters:
+      - name: paymentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get payment status
+      operationId: getPayment
+      tags: [payments]
+      responses:
+        "200":
+          description: Payment details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+        "404":
+          description: Payment not found
+      security:
+        - bearerAuth: []
+
+  /payments/{paymentId}/refund:
+    parameters:
+      - name: paymentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Refund a payment
+      operationId: refundPayment
+      tags: [refunds]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefundRequest"
+      responses:
+        "200":
+          description: Refund initiated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Refund"
+        "409":
+          description: Payment cannot be refunded
+      security:
+        - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    CreatePaymentRequest:
+      type: object
+      required: [orderId, amount, currency, paymentMethod]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: float
+          minimum: 0.01
+        currency:
+          type: string
+          example: USD
+        paymentMethod:
+          type: object
+          required: [type]
+          properties:
+            type:
+              type: string
+              enum: [card, paypal]
+            token:
+              type: string
+              description: Tokenized payment method from Stripe/PayPal
+
+    Payment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        orderId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: float
+        currency:
+          type: string
+        status:
+          type: string
+          enum: [pending, succeeded, failed, refunded]
+        provider:
+          type: string
+          enum: [stripe, paypal]
+        createdAt:
+          type: string
+          format: date-time
+
+    RefundRequest:
+      type: object
+      required: [amount]
+      properties:
+        amount:
+          type: number
+          format: float
+        reason:
+          type: string
+
+    Refund:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        paymentId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: float
+        status:
+          type: string
+          enum: [pending, succeeded, failed]
+        createdAt:
+          type: string
+          format: date-time

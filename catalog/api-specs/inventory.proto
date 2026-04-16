@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package inventory.v1;
+
+option java_package = "com.example.inventory.v1";
+option java_outer_classname = "InventoryProto";
+option go_package = "github.com/Ketan-Joshi/backstage-templates/gen/inventory/v1";
+
+// InventoryService provides real-time inventory checks and reservations.
+// Used internally between services for high-throughput stock queries.
+service InventoryService {
+  // Check current stock level for a product
+  rpc GetStock(GetStockRequest) returns (GetStockResponse);
+
+  // Reserve stock for an order (reduces available count)
+  rpc ReserveStock(ReserveStockRequest) returns (ReserveStockResponse);
+
+  // Release a previously held reservation
+  rpc ReleaseReservation(ReleaseReservationRequest) returns (ReleaseReservationResponse);
+
+  // Stream real-time inventory updates for a list of products
+  rpc WatchInventory(WatchInventoryRequest) returns (stream InventoryUpdate);
+
+  // Bulk stock check for multiple products
+  rpc BatchGetStock(BatchGetStockRequest) returns (BatchGetStockResponse);
+}
+
+// ── Request / Response messages ──────────────────────────────
+
+message GetStockRequest {
+  string product_id = 1;
+  string warehouse_id = 2; // optional; omit for aggregate across all warehouses
+}
+
+message GetStockResponse {
+  string product_id = 1;
+  int32 quantity_on_hand = 2;
+  int32 quantity_reserved = 3;
+  int32 quantity_available = 4;
+  string warehouse_id = 5;
+  int64 updated_at_unix = 6;
+}
+
+message ReserveStockRequest {
+  string product_id = 1;
+  string order_id = 2;
+  int32 quantity = 3;
+  int32 ttl_seconds = 4; // reservation expiry; default 900 (15 min)
+}
+
+message ReserveStockResponse {
+  string reservation_id = 1;
+  bool success = 2;
+  string failure_reason = 3; // populated when success = false
+  int32 quantity_reserved = 4;
+  int64 expires_at_unix = 5;
+}
+
+message ReleaseReservationRequest {
+  string reservation_id = 1;
+}
+
+message ReleaseReservationResponse {
+  bool success = 1;
+}
+
+message WatchInventoryRequest {
+  repeated string product_ids = 1;
+}
+
+message InventoryUpdate {
+  string product_id = 1;
+  int32 quantity_available = 2;
+  UpdateReason reason = 3;
+  int64 updated_at_unix = 4;
+
+  enum UpdateReason {
+    UNKNOWN = 0;
+    SALE = 1;
+    RESTOCK = 2;
+    RESERVATION = 3;
+    RESERVATION_RELEASED = 4;
+    ADJUSTMENT = 5;
+  }
+}
+
+message BatchGetStockRequest {
+  repeated string product_ids = 1;
+}
+
+message BatchGetStockResponse {
+  repeated GetStockResponse items = 1;
+}

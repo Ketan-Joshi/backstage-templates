@@ -1,0 +1,123 @@
+##############################################################
+# DOMAINS
+# Domains group related Systems together at the business level
+##############################################################
+
+apiVersion: backstage.io/v1alpha1
+kind: Domain
+metadata:
+  name: ecommerce
+  title: E-Commerce
+  description: >
+    Everything related to the customer-facing shopping experience —
+    product catalogue, cart, checkout, and order management.
+  tags:
+    - ecommerce
+    - customer-facing
+  links:
+    - url: https://wiki.example.com/domains/ecommerce
+      title: Domain Wiki
+      icon: dashboard
+spec:
+  owner: backend-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: Domain
+metadata:
+  name: data-platform
+  title: Data Platform
+  description: >
+    Internal data infrastructure: ingestion pipelines, data warehouse,
+    feature store, and analytics tooling.
+  tags:
+    - data
+    - analytics
+    - ml
+  links:
+    - url: https://wiki.example.com/domains/data-platform
+      title: Domain Wiki
+      icon: dashboard
+spec:
+  owner: data-team
+
+##############################################################
+# SYSTEMS
+# Systems are collections of entities that form a bounded context
+##############################################################
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: order-management
+  title: Order Management System
+  description: >
+    Handles the full order lifecycle: placement, payment, fulfilment,
+    and returns. Exposes the Orders API consumed by the storefront.
+  annotations:
+    backstage.io/techdocs-ref: dir:./docs/order-management
+  tags:
+    - orders
+    - payments
+  links:
+    - url: https://grafana.example.com/d/order-management
+      title: Grafana Dashboard
+      icon: dashboard
+    - url: https://runbooks.example.com/order-management
+      title: Runbook
+      icon: docs
+spec:
+  owner: backend-team
+  domain: ecommerce
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: storefront
+  title: Storefront
+  description: >
+    Customer-facing web application and mobile app. Consumes the
+    Orders API and Product Catalogue API.
+  annotations:
+    backstage.io/techdocs-ref: dir:./docs/storefront
+  tags:
+    - frontend
+    - web
+    - mobile
+spec:
+  owner: frontend-team
+  domain: ecommerce
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: data-ingestion
+  title: Data Ingestion System
+  description: >
+    Kafka-based event streaming and batch ETL pipelines that feed
+    the data warehouse.
+  annotations:
+    backstage.io/techdocs-ref: dir:./docs/data-ingestion
+  tags:
+    - kafka
+    - etl
+    - streaming
+spec:
+  owner: data-team
+  domain: data-platform
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: platform-tooling
+  title: Platform Tooling
+  description: >
+    Internal developer platform: CI/CD pipelines, container registry,
+    secrets management, and the Backstage portal itself.
+  annotations:
+    backstage.io/techdocs-ref: dir:./docs/platform-tooling
+  tags:
+    - platform
+    - devops
+    - ci-cd
+spec:
+  owner: platform-team
