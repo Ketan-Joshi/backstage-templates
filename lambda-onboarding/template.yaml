@@ -4,8 +4,8 @@ metadata:
   name: lambda-onboarding
   title: Onboard Lambda Function
   description: >
-    Onboards a new AWS Lambda function. Creates a GitHub repo,
-    registers it in the catalog, and triggers a Harness pipeline.
+    Onboards a new AWS Lambda function. Triggers a Harness CI/CD
+    pipeline that packages and deploys the function.
   tags:
     - lambda
     - aws
@@ -16,7 +16,7 @@ spec:
 
   parameters:
 
-    # ── Page 1: Service metadata ───────────────────────────────
+    # ── Page 1: Function metadata ──────────────────────────────
     - title: Function details
       required:
         - functionName
@@ -27,7 +27,7 @@ spec:
         functionName:
           title: Function name
           type: string
-          description: Lowercase letters and hyphens only
+          description: Lowercase letters and hyphens only. e.g. process-orders
           pattern: '^[a-z0-9-]+$'
           ui:autofocus: true
 
@@ -53,13 +53,30 @@ spec:
             - production
           default: dev
 
-    # ── Page 2: Lambda configuration ──────────────────────────
+    # ── Page 2: Source code ────────────────────────────────────
+    - title: Source code
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: GitHub repository URL
+          type: string
+          description: >
+            URL of the existing GitHub repo containing your Lambda code.
+            e.g. https://github.com/myorg/my-lambda
+          ui:autofocus: true
+
+        branch:
+          title: Branch
+          type: string
+          default: main
+          description: Branch to build and deploy
+
+    # ── Page 3: Lambda configuration ──────────────────────────
     - title: Lambda configuration
       required:
         - runtime
         - handler
-        - s3Bucket
-        - s3Key
       properties:
         runtime:
           title: Runtime
@@ -77,17 +94,11 @@ spec:
           title: Handler
           type: string
           default: index.handler
-          description: e.g. index.handler or main.lambda_handler
-
-        s3Bucket:
-          title: S3 bucket
-          type: string
-          description: S3 bucket containing the deployment zip
-
-        s3Key:
-          title: S3 key
-          type: string
-          description: Path to zip file in S3 e.g. functions/my-function.zip
+          description: >
+            Function handler e.g.
+            index.handler (Node.js)
+            main.lambda_handler (Python)
+            com.example.Handler::handleRequest (Java)
 
         lambdaMemory:
           title: Memory (MB)
@@ -104,86 +115,64 @@ spec:
           title: Timeout (seconds)
           type: number
           default: 30
-          description: Max 900 seconds (15 minutes)
+          description: Maximum execution time. Max 900 seconds (15 min)
 
-    # ── Page 3: Secrets and env vars ──────────────────────────
+        architecture:
+          title: Architecture
+          type: string
+          enum:
+            - x86_64
+            - arm64
+          default: x86_64
+          description: arm64 is cheaper and faster for most workloads
+
+    # ── Page 4: Secrets and env vars ──────────────────────────
     - title: Secrets and environment variables
       properties:
         ssmPaths:
-          title: SSM Parameter paths
+          title: SSM Parameter Store paths
           type: string
-          description: One SSM path per line
+          description: >
+            One SSM parameter path per line. Injected as environment
+            variables into your Lambda function.
+            Example:
+            /myapp/dev/DB_HOST
+            /myapp/dev/API_KEY
           ui:widget: textarea
           ui:options:
-            rows: 6
+            rows: 8
 
-    # ── Page 4: GitHub repository ──────────────────────────────
-    - title: GitHub repository
-      required:
-        - repoName
-        - repoOrg
-      properties:
-        repoName:
-          title: Repository name
+        secretsManagerArns:
+          title: Secrets Manager ARNs (optional)
           type: string
+          description: >
+            One Secrets Manager secret ARN per line.
+          ui:widget: textarea
+          ui:options:
+            rows: 4
 
-        repoOrg:
-          title: GitHub organisation
-          type: string
-          default: Ketan-Joshi
-
+  # ── Steps ──────────────────────────────────────────────────
   steps:
 
-    - id: fetch-template
-      name: Fetch skeleton files
-      action: fetch:template
-      input:
-        url: ./skeleton
-        values:
-          functionName: ${{ parameters.functionName }}
-          description: ${{ parameters.description }}
-          owner: ${{ parameters.owner }}
-          environment: ${{ parameters.environment }}
-          runtime: ${{ parameters.runtime }}
-          repoOrg: ${{ parameters.repoOrg }}
-          repoName: ${{ parameters.repoName }}
-
-    - id: publish-github
-      name: Create GitHub repository
-      action: publish:github
-      input:
-        description: ${{ parameters.description }}
-        repoUrl: github.com?repo=${{ parameters.repoName }}&owner=${{ parameters.repoOrg }}
-        defaultBranch: main
-
     - id: trigger-harness
-      name: Trigger Harness pipeline
+      name: Trigger Harness CI/CD pipeline
       action: harness:pipeline:trigger
       input:
         pipelineType: lambda
         serviceName: ${{ parameters.functionName }}
         environment: ${{ parameters.environment }}
+        repoUrl: ${{ parameters.repoUrl }}
+        branch: ${{ parameters.branch }}
         runtime: ${{ parameters.runtime }}
         handler: ${{ parameters.handler }}
-        s3Bucket: ${{ parameters.s3Bucket }}
-        s3Key: ${{ parameters.s3Key }}
         lambdaMemory: ${{ parameters.lambdaMemory }}
         timeout: ${{ parameters.timeout }}
+        architecture: ${{ parameters.architecture }}
         ssmPaths: ${{ parameters.ssmPaths }}
-
-    - id: register-catalog
-      name: Register in catalog
-      action: catalog:register
-      input:
-        repoContentsUrl: ${{ steps['publish-github'].output.repoContentsUrl }}
-        catalogInfoPath: /catalog-info.yaml
+        secretsManagerArns: ${{ parameters.secretsManagerArns }}
 
   output:
     links:
-      - title: GitHub repository
-        url: ${{ steps['publish-github'].output.remoteUrl }}
       - title: Harness pipeline
         url: ${{ steps['trigger-harness'].output.pipelineUrl }}
-      - title: Open in catalog
-        icon: catalog
-        entityRef: ${{ steps['register-catalog'].output.entityRef }}
+        icon: dashboard

@@ -4,8 +4,8 @@ metadata:
   name: ecs-service-onboarding
   title: Onboard ECS Fargate Application
   description: >
-    Onboards a new ECS Fargate application. Creates a GitHub repo,
-    registers it in the catalog, and triggers a Harness CI/CD pipeline.
+    Onboards a new ECS Fargate application. Triggers a Harness CI/CD
+    pipeline that builds the Docker image and deploys to ECS Fargate.
   tags:
     - ecs
     - fargate
@@ -55,22 +55,40 @@ spec:
             - production
           default: dev
 
-    # ── Page 2: ECS configuration ──────────────────────────────
+    # ── Page 2: Source code ────────────────────────────────────
+    - title: Source code
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: GitHub repository URL
+          type: string
+          description: >
+            URL of the existing GitHub repo containing your application code.
+            e.g. https://github.com/myorg/my-service
+          ui:autofocus: true
+
+        branch:
+          title: Branch
+          type: string
+          default: main
+          description: Branch to build and deploy
+
+        dockerfilePath:
+          title: Dockerfile path
+          type: string
+          default: Dockerfile
+          description: >
+            Path to Dockerfile relative to repo root.
+            e.g. Dockerfile or docker/Dockerfile
+
+    # ── Page 3: ECS configuration ──────────────────────────────
     - title: ECS configuration
       required:
-        - image
         - cpu
         - memory
         - port
       properties:
-        image:
-          title: Docker image
-          type: string
-          description: >
-            Full image name e.g. nginx:latest or
-            058029412961.dkr.ecr.us-east-1.amazonaws.com/my-service:latest
-          default: nginx:latest
-
         cpu:
           title: CPU units
           type: string
@@ -80,7 +98,7 @@ spec:
             - '1024'
             - '2048'
           default: '256'
-          description: 256 = 0.25 vCPU
+          description: 256 = 0.25 vCPU, 512 = 0.5 vCPU
 
         memory:
           title: Memory (MB)
@@ -96,119 +114,79 @@ spec:
           title: Container port
           type: number
           default: 8080
-          description: Port your app listens on
+          description: Port your app listens on inside the container
 
         healthCheckPath:
           title: Health check path
           type: string
           default: /health
-          description: HTTP path for ALB health checks
+          description: HTTP path for ALB/ECS health checks e.g. /health or /
 
         desiredCount:
           title: Number of tasks
           type: number
           default: 1
+          description: How many ECS tasks to run
 
         cluster:
           title: ECS cluster name (optional)
           type: string
-          description: Leave blank to use default from config
+          description: >
+            Leave blank to use the default cluster for the selected
+            environment. Only fill this to override.
 
-    # ── Page 3: Secrets and env vars ──────────────────────────
+    # ── Page 4: Secrets and env vars ──────────────────────────
     - title: Secrets and environment variables
       properties:
         ssmPaths:
-          title: SSM Parameter paths
+          title: SSM Parameter Store paths
           type: string
           description: >
-            One SSM path per line. These will be injected as environment
-            variables into your container.
-            e.g.
+            One SSM parameter path per line. These will be injected
+            as environment variables into your ECS container.
+            Example:
+            /myapp/dev/DB_HOST
             /myapp/dev/DB_PASSWORD
             /myapp/dev/API_KEY
           ui:widget: textarea
           ui:options:
-            rows: 6
+            rows: 8
 
-        secretsManagerPaths:
-          title: Secrets Manager paths (optional)
+        secretsManagerArns:
+          title: Secrets Manager ARNs (optional)
           type: string
           description: >
-            One Secrets Manager secret ARN or name per line.
+            One Secrets Manager secret ARN per line.
+            Example:
+            arn:aws:secretsmanager:us-east-1:123456789:secret:myapp/db
           ui:widget: textarea
           ui:options:
             rows: 4
 
-    # ── Page 4: GitHub repository ──────────────────────────────
-    - title: GitHub repository
-      required:
-        - repoName
-        - repoOrg
-      properties:
-        repoName:
-          title: Repository name
-          type: string
-          description: Name of the new GitHub repo to create
-
-        repoOrg:
-          title: GitHub organisation
-          type: string
-          description: Your GitHub org or username
-          default: Ketan-Joshi
-
   # ── Steps ──────────────────────────────────────────────────
   steps:
 
-    - id: fetch-template
-      name: Fetch skeleton files
-      action: fetch:template
-      input:
-        url: ./skeleton
-        values:
-          serviceName: ${{ parameters.serviceName }}
-          description: ${{ parameters.description }}
-          owner: ${{ parameters.owner }}
-          environment: ${{ parameters.environment }}
-          image: ${{ parameters.image }}
-          port: ${{ parameters.port }}
-          repoOrg: ${{ parameters.repoOrg }}
-          repoName: ${{ parameters.repoName }}
-
-    - id: publish-github
-      name: Create GitHub repository
-      action: publish:github
-      input:
-        description: ${{ parameters.description }}
-        repoUrl: github.com?repo=${{ parameters.repoName }}&owner=${{ parameters.repoOrg }}
-        defaultBranch: main
-
     - id: trigger-harness
-      name: Trigger Harness pipeline
+      name: Trigger Harness CI/CD pipeline
       action: harness:pipeline:trigger
       input:
         pipelineType: ecs
         serviceName: ${{ parameters.serviceName }}
         environment: ${{ parameters.environment }}
-        image: ${{ parameters.image }}
+        repoUrl: ${{ parameters.repoUrl }}
+        branch: ${{ parameters.branch }}
+        dockerfilePath: ${{ parameters.dockerfilePath }}
         cpu: ${{ parameters.cpu }}
         memory: ${{ parameters.memory }}
         port: ${{ parameters.port }}
         healthCheckPath: ${{ parameters.healthCheckPath }}
+        desiredCount: ${{ parameters.desiredCount }}
+        cluster: ${{ parameters.cluster }}
         ssmPaths: ${{ parameters.ssmPaths }}
-
-    - id: register-catalog
-      name: Register in catalog
-      action: catalog:register
-      input:
-        repoContentsUrl: ${{ steps['publish-github'].output.repoContentsUrl }}
-        catalogInfoPath: /catalog-info.yaml
+        secretsManagerArns: ${{ parameters.secretsManagerArns }}
 
   output:
     links:
-      - title: GitHub repository
-        url: ${{ steps['publish-github'].output.remoteUrl }}
       - title: Harness pipeline
         url: ${{ steps['trigger-harness'].output.pipelineUrl }}
-      - title: Open in catalog
-        icon: catalog
-        entityRef: ${{ steps['register-catalog'].output.entityRef }}
+        icon: dashboard
