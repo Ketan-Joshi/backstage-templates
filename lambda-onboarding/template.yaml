@@ -1,16 +1,15 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: ecs-service-onboarding
-  title: Onboard ECS Fargate Application
+  name: lambda-onboarding
+  title: Onboard Lambda Function
   description: >
-    Onboards a new ECS Fargate application. Creates a GitHub repo,
-    registers it in the catalog, and triggers a Harness CI/CD pipeline.
+    Onboards a new AWS Lambda function. Creates a GitHub repo,
+    registers it in the catalog, and triggers a Harness pipeline.
   tags:
-    - ecs
-    - fargate
+    - lambda
     - aws
-    - recommended
+    - serverless
 spec:
   owner: platform-team
   type: service
@@ -18,29 +17,28 @@ spec:
   parameters:
 
     # ── Page 1: Service metadata ───────────────────────────────
-    - title: Service details
+    - title: Function details
       required:
-        - serviceName
+        - functionName
         - description
         - owner
         - environment
       properties:
-        serviceName:
-          title: Service name
+        functionName:
+          title: Function name
           type: string
-          description: Lowercase letters and hyphens only. e.g. payment-service
+          description: Lowercase letters and hyphens only
           pattern: '^[a-z0-9-]+$'
           ui:autofocus: true
 
         description:
           title: Description
           type: string
-          description: What does this service do?
+          description: What does this function do?
 
         owner:
           title: Team owner
           type: string
-          description: Team responsible for this service
           ui:field: OwnerPicker
           ui:options:
             catalogFilter:
@@ -55,64 +53,58 @@ spec:
             - production
           default: dev
 
-    # ── Page 2: ECS configuration ──────────────────────────────
-    - title: ECS configuration
+    # ── Page 2: Lambda configuration ──────────────────────────
+    - title: Lambda configuration
       required:
-        - image
-        - cpu
-        - memory
-        - port
+        - runtime
+        - handler
+        - s3Bucket
+        - s3Key
       properties:
-        image:
-          title: Docker image
-          type: string
-          description: >
-            Full image name e.g. nginx:latest or
-            058029412961.dkr.ecr.us-east-1.amazonaws.com/my-service:latest
-          default: nginx:latest
-
-        cpu:
-          title: CPU units
+        runtime:
+          title: Runtime
           type: string
           enum:
-            - '256'
-            - '512'
-            - '1024'
-            - '2048'
-          default: '256'
-          description: 256 = 0.25 vCPU
+            - nodejs18.x
+            - nodejs20.x
+            - python3.11
+            - python3.12
+            - java17
+            - java21
+          default: nodejs18.x
 
-        memory:
+        handler:
+          title: Handler
+          type: string
+          default: index.handler
+          description: e.g. index.handler or main.lambda_handler
+
+        s3Bucket:
+          title: S3 bucket
+          type: string
+          description: S3 bucket containing the deployment zip
+
+        s3Key:
+          title: S3 key
+          type: string
+          description: Path to zip file in S3 e.g. functions/my-function.zip
+
+        lambdaMemory:
           title: Memory (MB)
-          type: string
+          type: number
           enum:
-            - '512'
-            - '1024'
-            - '2048'
-            - '4096'
-          default: '512'
+            - 128
+            - 256
+            - 512
+            - 1024
+            - 2048
+          default: 128
 
-        port:
-          title: Container port
+        timeout:
+          title: Timeout (seconds)
           type: number
-          default: 8080
-          description: Port your app listens on
-
-        healthCheckPath:
-          title: Health check path
-          type: string
-          default: /health
-          description: HTTP path for ALB health checks
-
-        desiredCount:
-          title: Number of tasks
-          type: number
-          default: 1
-
-        cluster:
-          title: ECS cluster name (optional)
-          type: string
-          description: Leave blank to use default from config
+          default: 30
+          description: Max 900 seconds (15 minutes)
 
     # ── Page 3: Secrets and env vars ──────────────────────────
     - title: Secrets and environment variables
@@ -120,24 +112,10 @@ spec:
         ssmPaths:
           title: SSM Parameter paths
           type: string
-          description: >
-            One SSM path per line. These will be injected as environment
-            variables into your container.
-            e.g.
-            /myapp/dev/DB_PASSWORD
-            /myapp/dev/API_KEY
+          description: One SSM path per line
           ui:widget: textarea
           ui:options:
             rows: 6
-
-        secretsManagerPaths:
-          title: Secrets Manager paths (optional)
-          type: string
-          description: >
-            One Secrets Manager secret ARN or name per line.
-          ui:widget: textarea
-          ui:options:
-            rows: 4
 
     # ── Page 4: GitHub repository ──────────────────────────────
     - title: GitHub repository
@@ -148,15 +126,12 @@ spec:
         repoName:
           title: Repository name
           type: string
-          description: Name of the new GitHub repo to create
 
         repoOrg:
           title: GitHub organisation
           type: string
-          description: Your GitHub org or username
           default: Ketan-Joshi
 
-  # ── Steps ──────────────────────────────────────────────────
   steps:
 
     - id: fetch-template
@@ -165,12 +140,11 @@ spec:
       input:
         url: ./skeleton
         values:
-          serviceName: ${{ parameters.serviceName }}
+          functionName: ${{ parameters.functionName }}
           description: ${{ parameters.description }}
           owner: ${{ parameters.owner }}
           environment: ${{ parameters.environment }}
-          image: ${{ parameters.image }}
-          port: ${{ parameters.port }}
+          runtime: ${{ parameters.runtime }}
           repoOrg: ${{ parameters.repoOrg }}
           repoName: ${{ parameters.repoName }}
 
@@ -186,14 +160,15 @@ spec:
       name: Trigger Harness pipeline
       action: harness:pipeline:trigger
       input:
-        pipelineType: ecs
-        serviceName: ${{ parameters.serviceName }}
+        pipelineType: lambda
+        serviceName: ${{ parameters.functionName }}
         environment: ${{ parameters.environment }}
-        image: ${{ parameters.image }}
-        cpu: ${{ parameters.cpu }}
-        memory: ${{ parameters.memory }}
-        port: ${{ parameters.port }}
-        healthCheckPath: ${{ parameters.healthCheckPath }}
+        runtime: ${{ parameters.runtime }}
+        handler: ${{ parameters.handler }}
+        s3Bucket: ${{ parameters.s3Bucket }}
+        s3Key: ${{ parameters.s3Key }}
+        lambdaMemory: ${{ parameters.lambdaMemory }}
+        timeout: ${{ parameters.timeout }}
         ssmPaths: ${{ parameters.ssmPaths }}
 
     - id: register-catalog
