@@ -5,7 +5,7 @@ metadata:
   title: Onboard ECS Fargate Application
   description: >
     Onboards a new ECS Fargate application. Triggers a Harness CI/CD
-    pipeline that builds the Docker image and deploys to ECS Fargate.
+    pipeline and registers the service in the Backstage catalog.
   tags:
     - ecs
     - fargate
@@ -17,7 +17,6 @@ spec:
 
   parameters:
 
-    # ── Page 1: Service metadata ───────────────────────────────
     - title: Service details
       required:
         - serviceName
@@ -40,7 +39,6 @@ spec:
         owner:
           title: Team owner
           type: string
-          description: Team responsible for this service
           ui:field: OwnerPicker
           ui:options:
             catalogFilter:
@@ -55,34 +53,31 @@ spec:
             - production
           default: dev
 
-    # ── Page 2: Source code ────────────────────────────────────
     - title: Source code
       required:
-        - repoUrl
+        - repoOrg
+        - repoName
       properties:
-        repoUrl:
-          title: GitHub repository URL
+        repoOrg:
+          title: GitHub organisation or username
           type: string
-          description: >
-            URL of the existing GitHub repo containing your application code.
-            e.g. https://github.com/myorg/my-service
-          ui:autofocus: true
+          default: Ketan-Joshi
+
+        repoName:
+          title: GitHub repository name
+          type: string
+          description: Just the repo name e.g. my-service
 
         branch:
           title: Branch
           type: string
           default: main
-          description: Branch to build and deploy
 
         dockerfilePath:
           title: Dockerfile path
           type: string
           default: Dockerfile
-          description: >
-            Path to Dockerfile relative to repo root.
-            e.g. Dockerfile or docker/Dockerfile
 
-    # ── Page 3: ECS configuration ──────────────────────────────
     - title: ECS configuration
       required:
         - cpu
@@ -98,7 +93,6 @@ spec:
             - '1024'
             - '2048'
           default: '256'
-          description: 256 = 0.25 vCPU, 512 = 0.5 vCPU
 
         memory:
           title: Memory (MB)
@@ -114,40 +108,28 @@ spec:
           title: Container port
           type: number
           default: 8080
-          description: Port your app listens on inside the container
 
         healthCheckPath:
           title: Health check path
           type: string
           default: /health
-          description: HTTP path for ALB/ECS health checks e.g. /health or /
 
         desiredCount:
           title: Number of tasks
           type: number
           default: 1
-          description: How many ECS tasks to run
 
         cluster:
           title: ECS cluster name (optional)
           type: string
-          description: >
-            Leave blank to use the default cluster for the selected
-            environment. Only fill this to override.
+          description: Leave blank to use default from config
 
-    # ── Page 4: Secrets and env vars ──────────────────────────
     - title: Secrets and environment variables
       properties:
         ssmPaths:
           title: SSM Parameter Store paths
           type: string
-          description: >
-            One SSM parameter path per line. These will be injected
-            as environment variables into your ECS container.
-            Example:
-            /myapp/dev/DB_HOST
-            /myapp/dev/DB_PASSWORD
-            /myapp/dev/API_KEY
+          description: One SSM path per line
           ui:widget: textarea
           ui:options:
             rows: 8
@@ -155,15 +137,11 @@ spec:
         secretsManagerArns:
           title: Secrets Manager ARNs (optional)
           type: string
-          description: >
-            One Secrets Manager secret ARN per line.
-            Example:
-            arn:aws:secretsmanager:us-east-1:123456789:secret:myapp/db
+          description: One ARN per line
           ui:widget: textarea
           ui:options:
             rows: 4
 
-  # ── Steps ──────────────────────────────────────────────────
   steps:
 
     - id: trigger-harness
@@ -173,7 +151,7 @@ spec:
         pipelineType: ecs
         serviceName: ${{ parameters.serviceName }}
         environment: ${{ parameters.environment }}
-        repoUrl: ${{ parameters.repoUrl }}
+        repoUrl: https://github.com/${{ parameters.repoOrg }}/${{ parameters.repoName }}
         branch: ${{ parameters.branch }}
         dockerfilePath: ${{ parameters.dockerfilePath }}
         cpu: ${{ parameters.cpu }}
@@ -185,8 +163,40 @@ spec:
         ssmPaths: ${{ parameters.ssmPaths }}
         secretsManagerArns: ${{ parameters.secretsManagerArns }}
 
+    - id: create-catalog-file
+      name: Register service in catalog
+      action: github:catalog:create
+      input:
+        serviceName: ${{ parameters.serviceName }}
+        description: ${{ parameters.description }}
+        owner: ${{ parameters.owner }}
+        environment: ${{ parameters.environment }}
+        pipelineUrl: ${{ steps['trigger-harness'].output.pipelineUrl }}
+        pipelineId: ${{ steps['trigger-harness'].output.pipelineId }}
+        repoUrl: https://github.com/${{ parameters.repoOrg }}/${{ parameters.repoName }}
+        cpu: ${{ parameters.cpu }}
+        memory: ${{ parameters.memory }}
+        port: ${{ parameters.port }}
+        serviceType: service
+        tags:
+          - ecs
+          - fargate
+
+    - id: register-catalog
+      name: Refresh Backstage catalog
+      action: catalog:register
+      input:
+        repoContentsUrl: https://github.com/Ketan-Joshi/backstage-templates/blob/main
+        catalogInfoPath: /catalog/services/${{ parameters.serviceName }}-${{ parameters.environment }}.yaml
+
   output:
     links:
       - title: Harness pipeline
         url: ${{ steps['trigger-harness'].output.pipelineUrl }}
         icon: dashboard
+      - title: View in catalog
+        icon: catalog
+        entityRef: ${{ steps['register-catalog'].output.entityRef }}
+      - title: catalog-info.yaml
+        url: ${{ steps['create-catalog-file'].output.catalogInfoUrl }}
+        icon: github

@@ -36,6 +36,5 @@ spec:
 
     # Software Templates
     - ../ecs-onboarding/template.yaml
-    - ../nodejs-library/template.yaml
-    - ../documentation-site/template.yaml
-    - ../data-pipeline/template.yaml
+    - ../lambda-onboarding/template.yaml
+    - ./services-index.yaml
