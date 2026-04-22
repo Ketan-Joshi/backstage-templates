@@ -191,8 +191,11 @@ spec:
 
   output:
     links:
-      - title: Harness pipeline
-        url: ${{ steps['trigger-harness'].output.pipelineUrl }}
+      - title: CI Pipeline (Build)
+        url: ${{ steps['trigger-harness'].output.ciPipelineUrl }}
+        icon: dashboard
+      - title: CD Pipeline (Deploy)
+        url: ${{ steps['trigger-harness'].output.cdPipelineUrl }}
         icon: dashboard
       - title: View in catalog
         icon: catalog
