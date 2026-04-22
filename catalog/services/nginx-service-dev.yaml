@@ -5,16 +5,21 @@ metadata:
   title: "nginx-service (dev)"
   description: "This will be the server to load the backend APIs"
   annotations:
-    harness.io/pipeline-url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/ci/orgs/default/projects/default_project/pipelines/nginx_service_ci/executions/Ep4BQ9huRzqjwTQk3ACeZg/pipeline"
-    harness.io/pipeline-id: "nginx_service_ci"
+    harness.io/ci-pipeline-url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/ci/orgs/default/projects/default_project/pipelines/nginx_service_ci/executions/1IaRlJKtRWyP4DNIYETOuw/pipeline"
+    harness.io/ci-pipeline-id: "nginx_service_ci"
+    harness.io/cd-pipeline-url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/cd/orgs/default/projects/default_project/pipelines/nginx_service_dev_cd/executions/DlmNKHmSSKetOlrUI6P-0w/pipeline"
+    harness.io/cd-pipeline-id: "nginx_service_dev_cd"
     backstage.io/source-location: "url:https://github.com/Ketan-Joshi/nginx-app"
   tags:
     - ecs
     - dev
     - fargate
   links:
-    - url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/ci/orgs/default/projects/default_project/pipelines/nginx_service_ci/executions/Ep4BQ9huRzqjwTQk3ACeZg/pipeline"
-      title: Harness Pipeline
+    - url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/ci/orgs/default/projects/default_project/pipelines/nginx_service_ci/executions/1IaRlJKtRWyP4DNIYETOuw/pipeline"
+      title: "CI Pipeline (Build & Push)"
+      icon: dashboard
+    - url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/cd/orgs/default/projects/default_project/pipelines/nginx_service_dev_cd/executions/DlmNKHmSSKetOlrUI6P-0w/pipeline"
+      title: "CD Pipeline (Deploy - dev)"
       icon: dashboard
     - url: "https://github.com/Ketan-Joshi/nginx-app"
       title: Source Repository
@@ -22,5 +27,5 @@ metadata:
 spec:
   type: service
   lifecycle: dev
-  owner: "group:default/platform team"
+  owner: "group:default/platform"
   system: ecs-platform
