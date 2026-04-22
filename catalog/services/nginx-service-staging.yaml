@@ -1,0 +1,31 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: nginx-service-staging
+  title: "nginx-service (staging)"
+  description: "This will be the server to load the backend APIs"
+  annotations:
+    harness.io/ci-pipeline-url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/ci/orgs/default/projects/default_project/pipelines/nginx_service_ci/executions/BcW-jVrWQ3O_ywZ4ItXFZw/pipeline"
+    harness.io/ci-pipeline-id: "nginx_service_ci"
+    harness.io/cd-pipeline-url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/cd/orgs/default/projects/default_project/pipelines/nginx_service_staging_cd/executions/hJooD-j8Rh-TI4G40H0bcg/pipeline"
+    harness.io/cd-pipeline-id: "nginx_service_staging_cd"
+    backstage.io/source-location: "url:https://github.com/Ketan-Joshi/nginx-app"
+  tags:
+    - ecs
+    - staging
+    - fargate
+  links:
+    - url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/ci/orgs/default/projects/default_project/pipelines/nginx_service_ci/executions/BcW-jVrWQ3O_ywZ4ItXFZw/pipeline"
+      title: "CI Pipeline (Build & Push)"
+      icon: dashboard
+    - url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/cd/orgs/default/projects/default_project/pipelines/nginx_service_staging_cd/executions/hJooD-j8Rh-TI4G40H0bcg/pipeline"
+      title: "CD Pipeline (Deploy - staging)"
+      icon: dashboard
+    - url: "https://github.com/Ketan-Joshi/nginx-app"
+      title: Source Repository
+      icon: github
+spec:
+  type: service
+  lifecycle: staging
+  owner: "group:default/platform"
+  system: ecs-platform
