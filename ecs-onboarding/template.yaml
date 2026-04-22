@@ -162,7 +162,7 @@ spec:
         cluster: ${{ parameters.cluster }}
         ssmPaths: ${{ parameters.ssmPaths }}
         secretsManagerArns: ${{ parameters.secretsManagerArns }}
-
+    
     - id: create-catalog-file
       name: Register service in catalog
       action: github:catalog:create
@@ -171,8 +171,10 @@ spec:
         description: ${{ parameters.description }}
         owner: ${{ parameters.owner }}
         environment: ${{ parameters.environment }}
-        pipelineUrl: ${{ steps['trigger-harness'].output.pipelineUrl }}
-        pipelineId: ${{ steps['trigger-harness'].output.pipelineId }}
+        ciPipelineUrl: ${{ steps['trigger-harness'].output.ciPipelineUrl }}
+        ciPipelineId: ${{ steps['trigger-harness'].output.ciPipelineId }}
+        cdPipelineUrl: ${{ steps['trigger-harness'].output.cdPipelineUrl }}
+        cdPipelineId: ${{ steps['trigger-harness'].output.cdPipelineId }}
         repoUrl: https://github.com/${{ parameters.repoOrg }}/${{ parameters.repoName }}
         cpu: ${{ parameters.cpu }}
         memory: ${{ parameters.memory }}
