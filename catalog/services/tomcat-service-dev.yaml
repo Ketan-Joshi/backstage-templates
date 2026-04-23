@@ -1,0 +1,31 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: tomcat-service-dev
+  title: "tomcat-service (dev)"
+  description: "tomcat-service"
+  annotations:
+    harness.io/ci-pipeline-url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/ci/orgs/default/projects/default_project/pipelines/tomcat_service_ci/executions/Vdj3z4EgSHqi1KGETzPsYA/pipeline"
+    harness.io/ci-pipeline-id: "tomcat_service_ci"
+    harness.io/cd-pipeline-url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/cd/orgs/default/projects/default_project/pipelines/tomcat_service_dev_cd/executions/umVZ8_JKTn2LW5_X3pNexA/pipeline"
+    harness.io/cd-pipeline-id: "tomcat_service_dev_cd"
+    backstage.io/source-location: "url:https://github.com/Ketan-Joshi/https://github.com/zembutsu/docker-sample-nginx"
+  tags:
+    - ecs
+    - dev
+    - fargate
+  links:
+    - url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/ci/orgs/default/projects/default_project/pipelines/tomcat_service_ci/executions/Vdj3z4EgSHqi1KGETzPsYA/pipeline"
+      title: "CI Pipeline (Build & Push)"
+      icon: dashboard
+    - url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/cd/orgs/default/projects/default_project/pipelines/tomcat_service_dev_cd/executions/umVZ8_JKTn2LW5_X3pNexA/pipeline"
+      title: "CD Pipeline (Deploy - dev)"
+      icon: dashboard
+    - url: "https://github.com/Ketan-Joshi/https://github.com/zembutsu/docker-sample-nginx"
+      title: Source Repository
+      icon: github
+spec:
+  type: service
+  lifecycle: dev
+  owner: "group:default/devops"
+  system: ecs-platform
