@@ -184,13 +184,6 @@ spec:
           - ecs
           - fargate
 
-    - id: register-catalog
-      name: Refresh Backstage catalog
-      action: catalog:register
-      input:
-        repoContentsUrl: https://github.com/Ketan-Joshi/backstage-templates/blob/main
-        catalogInfoPath: /catalog/services/${{ parameters.serviceName }}-${{ parameters.environment }}.yaml
-
   output:
     links:
       - title: CI Pipeline (Build)
@@ -199,9 +192,6 @@ spec:
       - title: CD Pipeline (Deploy)
         url: ${{ steps['trigger-harness'].output.cdPipelineUrl }}
         icon: dashboard
-      - title: View in catalog
-        icon: catalog
-        entityRef: ${{ steps['register-catalog'].output.entityRef }}
       - title: catalog-info.yaml
         url: ${{ steps['create-catalog-file'].output.catalogInfoUrl }}
         icon: github
