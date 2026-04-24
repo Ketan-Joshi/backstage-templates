@@ -123,37 +123,63 @@ spec:
           title: ECS cluster name (optional)
           type: string
           description: Leave blank to use default from config
-  
     - title: Secrets and environment variables
       properties:
+
         ssmParameters:
           title: SSM Parameter Store
-          type: string
-          description: >
-            One parameter per line in format: PATH | VALUE | TYPE
-
-            TYPE can be: SecureString (default) or String
-
-            Examples:
-            /myapp/dev/DB_PASSWORD | mypassword123 | SecureString
-            /myapp/dev/API_URL | https://api.example.com | String
-            /myapp/dev/API_KEY | abc123xyz | SecureString
-          ui:widget: textarea
+          type: array
+          description: Add environment variables to be stored in AWS SSM Parameter Store
+          ui:ArrayFieldTemplate: ArrayFieldTemplate
           ui:options:
-            rows: 8
+            addable: true
+            removable: true
+            orderable: false
+          items:
+            type: object
+            required:
+              - path
+              - value
+            properties:
+              path:
+                title: Parameter path
+                type: string
+                description: 'e.g. /myapp/dev/DB_PASSWORD'
+              value:
+                title: Value
+                type: string
+                ui:field: Secret
+              type:
+                title: Type
+                type: string
+                enum:
+                  - SecureString
+                  - String
+                default: SecureString
 
         secretsManagerSecrets:
           title: Secrets Manager
-          type: string
-          description: >
-            One secret per line in format: ARN | VALUE
-
-            Examples:
-            arn:aws:secretsmanager:us-east-1:058029412961:secret:myapp/dev/db-cert | mySecretValue
-            arn:aws:secretsmanager:us-east-1:058029412961:secret:myapp/dev/jwt | myJwtSecret
-          ui:widget: textarea
+          type: array
+          description: Add secrets stored in AWS Secrets Manager
+          ui:ArrayFieldTemplate: ArrayFieldTemplate
           ui:options:
-            rows: 6
+            addable: true
+            removable: true
+            orderable: false
+          items:
+            type: object
+            required:
+              - arn
+              - value
+            properties:
+              arn:
+                title: Secret ARN
+                type: string
+                description: 'arn:aws:secretsmanager:us-east-1:058029412961:secret:myapp/dev/db'
+              value:
+                title: Value
+                type: string
+                ui:field: Secret 
 
   steps:
 
@@ -175,7 +201,7 @@ spec:
         cluster: ${{ parameters.cluster }}
         ssmPaths: ${{ parameters.ssmPaths }}
         secretsManagerArns: ${{ parameters.secretsManagerArns }}
-
+  
     - id: manage-secrets
       name: Create or update secrets
       action: aws:secrets:manage
