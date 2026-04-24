@@ -123,24 +123,37 @@ spec:
           title: ECS cluster name (optional)
           type: string
           description: Leave blank to use default from config
-
+  
     - title: Secrets and environment variables
       properties:
-        ssmPaths:
-          title: SSM Parameter Store paths
+        ssmParameters:
+          title: SSM Parameter Store
           type: string
-          description: One SSM path per line
+          description: >
+            One parameter per line in format: PATH | VALUE | TYPE
+
+            TYPE can be: SecureString (default) or String
+
+            Examples:
+            /myapp/dev/DB_PASSWORD | mypassword123 | SecureString
+            /myapp/dev/API_URL | https://api.example.com | String
+            /myapp/dev/API_KEY | abc123xyz | SecureString
           ui:widget: textarea
           ui:options:
             rows: 8
 
-        secretsManagerArns:
-          title: Secrets Manager ARNs (optional)
+        secretsManagerSecrets:
+          title: Secrets Manager
           type: string
-          description: One ARN per line
+          description: >
+            One secret per line in format: ARN | VALUE
+
+            Examples:
+            arn:aws:secretsmanager:us-east-1:058029412961:secret:myapp/dev/db-cert | mySecretValue
+            arn:aws:secretsmanager:us-east-1:058029412961:secret:myapp/dev/jwt | myJwtSecret
           ui:widget: textarea
           ui:options:
-            rows: 4
+            rows: 6
 
   steps:
 
@@ -162,7 +175,15 @@ spec:
         cluster: ${{ parameters.cluster }}
         ssmPaths: ${{ parameters.ssmPaths }}
         secretsManagerArns: ${{ parameters.secretsManagerArns }}
-    
+
+    - id: manage-secrets
+      name: Create or update secrets
+      action: aws:secrets:manage
+      input:
+        environment: ${{ parameters.environment }}
+        ssmParameters: ${{ parameters.ssmParameters }}
+        secretsManagerSecrets: ${{ parameters.secretsManagerSecrets }}
+
     - id: create-catalog-file
       name: Register service in catalog
       action: github:catalog:create
