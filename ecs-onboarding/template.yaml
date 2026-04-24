@@ -123,70 +123,38 @@ spec:
           title: ECS cluster name (optional)
           type: string
           description: Leave blank to use default from config
-
-
     - title: Secrets and environment variables
       properties:
 
         ssmParameters:
           title: SSM Parameter Store
-          description: >
-            Add environment variables to be stored in AWS SSM Parameter Store.
-            Click "Add Item" to add more parameters.
-          type: array
+          type: string
+          ui:widget: textarea
           ui:options:
-            addable: true
-            removable: true
-            orderable: false
-          items:
-            type: object
-            required:
-              - path
-              - value
-            properties:
-              path:
-                title: Parameter path
-                type: string
-                description: 'e.g. /myapp/dev/DB_PASSWORD'
-              value:
-                title: Value
-                type: string
-                ui:widget: password
-              type:
-                title: Type
-                type: string
-                enum:
-                  - SecureString
-                  - String
-                enumNames:
-                  - 'SecureString (encrypted)'
-                  - 'String (plain text)'
-                default: SecureString
+            rows: 10
+          ui:placeholder: |
+            /myapp/dev/DB_PASSWORD | mySecretValue | SecureString
+            /myapp/dev/API_URL | https://api.example.com | String
+            /myapp/dev/API_KEY | abc123 | SecureString
+          description: >
+            One parameter per line.
+            Format: PATH | VALUE | TYPE
+            TYPE options: SecureString (default, encrypted) or String (plain text)
+            Leave blank if no SSM parameters needed.
 
         secretsManagerSecrets:
           title: Secrets Manager
-          description: >
-            Add secrets stored in AWS Secrets Manager.
-            Provide the full ARN and value.
-          type: array
+          type: string
+          ui:widget: textarea
           ui:options:
-            addable: true
-            removable: true
-            orderable: false
-          items:
-            type: object
-            required:
-              - arn
-              - value
-            properties:
-              arn:
-                title: Secret ARN
-                type: string
-                description: 'arn:aws:secretsmanager:us-east-1:058029412961:secret:myapp/dev/db'
-              value:
-                title: Value
-                type: string
-                ui:widget: password
+            rows: 6
+          ui:placeholder: |
+            arn:aws:secretsmanager:us-east-1:058029412961:secret:myapp/dev/db | mySecretValue
+            arn:aws:secretsmanager:us-east-1:058029412961:secret:myapp/dev/jwt | myJwtSecret
+          description: >
+            One secret per line.
+            Format: ARN | VALUE
+            Leave blank if no Secrets Manager secrets needed.
 
   steps:
 
