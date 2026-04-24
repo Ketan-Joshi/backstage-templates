@@ -5,9 +5,9 @@ metadata:
   title: "nginx-service (dev)"
   description: "This will be the server to load the backend APIs"
   annotations:
-    harness.io/ci-pipeline-url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/ci/orgs/default/projects/default_project/pipelines/nginx_service_ci/executions/bdohm98MTpCHrN_IQsO35A/pipeline"
+    harness.io/ci-pipeline-url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/ci/orgs/default/projects/default_project/pipelines/nginx_service_ci/executions/Jk1iKxM1TDirrfEkVU_ANw/pipeline"
     harness.io/ci-pipeline-id: "nginx_service_ci"
-    harness.io/cd-pipeline-url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/cd/orgs/default/projects/default_project/pipelines/nginx_service_dev_deploy/executions/0gDtzJQrTuOHwEHkv9T24A/pipeline"
+    harness.io/cd-pipeline-url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/cd/orgs/default/projects/default_project/pipelines/nginx_service_dev_deploy/executions/v8Wq7mEXSsyTKQPS0atXyw/pipeline"
     harness.io/cd-pipeline-id: "nginx_service_dev_deploy"
     backstage.io/source-location: "url:https://github.com/Ketan-Joshi/nginx-app"
   tags:
@@ -15,10 +15,10 @@ metadata:
     - dev
     - fargate
   links:
-    - url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/ci/orgs/default/projects/default_project/pipelines/nginx_service_ci/executions/bdohm98MTpCHrN_IQsO35A/pipeline"
+    - url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/ci/orgs/default/projects/default_project/pipelines/nginx_service_ci/executions/Jk1iKxM1TDirrfEkVU_ANw/pipeline"
       title: "CI Pipeline (Build & Push)"
       icon: dashboard
-    - url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/cd/orgs/default/projects/default_project/pipelines/nginx_service_dev_deploy/executions/0gDtzJQrTuOHwEHkv9T24A/pipeline"
+    - url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/cd/orgs/default/projects/default_project/pipelines/nginx_service_dev_deploy/executions/v8Wq7mEXSsyTKQPS0atXyw/pipeline"
       title: "CD Pipeline (Deploy - dev)"
       icon: dashboard
     - url: "https://github.com/Ketan-Joshi/nginx-app"
