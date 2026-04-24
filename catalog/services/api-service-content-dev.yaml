@@ -1,0 +1,31 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: api-service-content-dev
+  title: "api-service-content (dev)"
+  description: "api-service-content"
+  annotations:
+    harness.io/ci-pipeline-url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/ci/orgs/default/projects/default_project/pipelines/api_service_content_ci/executions/bjIsiXt-S0OX5_-nCLU0cA/pipeline"
+    harness.io/ci-pipeline-id: "api_service_content_ci"
+    harness.io/cd-pipeline-url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/cd/orgs/default/projects/default_project/pipelines/api_service_content_dev_deploy/executions/aJlJkMRQRXizXuh-CP1qVg/pipeline"
+    harness.io/cd-pipeline-id: "api_service_content_dev_deploy"
+    backstage.io/source-location: "url:https://github.com/zembutsu/https://github.com/zembutsu/docker-sample-nginx"
+  tags:
+    - ecs
+    - dev
+    - fargate
+  links:
+    - url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/ci/orgs/default/projects/default_project/pipelines/api_service_content_ci/executions/bjIsiXt-S0OX5_-nCLU0cA/pipeline"
+      title: "CI Pipeline (Build & Push)"
+      icon: dashboard
+    - url: "https://app.harness.io/ng/account/M0ul79K-TQWYBL5NkEUxfw/cd/orgs/default/projects/default_project/pipelines/api_service_content_dev_deploy/executions/aJlJkMRQRXizXuh-CP1qVg/pipeline"
+      title: "CD Pipeline (Deploy - dev)"
+      icon: dashboard
+    - url: "https://github.com/zembutsu/https://github.com/zembutsu/docker-sample-nginx"
+      title: Source Repository
+      icon: github
+spec:
+  type: service
+  lifecycle: dev
+  owner: "group:default/vansh raj"
+  system: ecs-platform
