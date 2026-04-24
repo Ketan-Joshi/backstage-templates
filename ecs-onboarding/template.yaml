@@ -123,14 +123,17 @@ spec:
           title: ECS cluster name (optional)
           type: string
           description: Leave blank to use default from config
+
+
     - title: Secrets and environment variables
       properties:
 
         ssmParameters:
           title: SSM Parameter Store
+          description: >
+            Add environment variables to be stored in AWS SSM Parameter Store.
+            Click "Add Item" to add more parameters.
           type: array
-          description: Add environment variables to be stored in AWS SSM Parameter Store
-          ui:ArrayFieldTemplate: ArrayFieldTemplate
           ui:options:
             addable: true
             removable: true
@@ -148,20 +151,24 @@ spec:
               value:
                 title: Value
                 type: string
-                ui:field: Secret
+                ui:widget: password
               type:
                 title: Type
                 type: string
                 enum:
                   - SecureString
                   - String
+                enumNames:
+                  - 'SecureString (encrypted)'
+                  - 'String (plain text)'
                 default: SecureString
 
         secretsManagerSecrets:
           title: Secrets Manager
+          description: >
+            Add secrets stored in AWS Secrets Manager.
+            Provide the full ARN and value.
           type: array
-          description: Add secrets stored in AWS Secrets Manager
-          ui:ArrayFieldTemplate: ArrayFieldTemplate
           ui:options:
             addable: true
             removable: true
@@ -179,7 +186,7 @@ spec:
               value:
                 title: Value
                 type: string
-                ui:field: Secret 
+                ui:widget: password
 
   steps:
 
